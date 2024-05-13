@@ -10,6 +10,11 @@ const MAX_ROWS = 6; // Maximum number of rows in the game board
 const MAX_COLUMNS = 7;
 const MAX_COINS = MAX_ROWS * MAX_COLUMNS; // Maximum number of coins that can be played in the game
 const LEFT_SPACE = "                  "; // Left space for the board to align properly
+const PLAYER1_COIN = "X"; // Usually User
+const PLAYER1_WINNER_COIN = "U"; // When user wins, to point to winning coins
+const PLAYER2_COIN = "O"; // Usually PC
+const PLAYER2_WINNER_COIN = "P"; // When pc wins, to point to winning coins
+const EMPTY = " ";
 
 /**********************/
 /*  Global Variables  */
@@ -28,7 +33,7 @@ async function loadGame(){  // Initialization of all Variables
 	for(let i = 0; i < MAX_ROWS; i++){
 		Board[i] = [];
 		for(let j = 0; j < MAX_COLUMNS; j++){
-			Board[i][j] = " ";
+			Board[i][j] = EMPTY;
 		}
 	}
 	coinsCount = 0;
@@ -122,7 +127,80 @@ function drawBoard(board){
 
     console.log(boardPrint);
 	console.log();
-} 
+}
+
+function makeMove(board, move, coin = EMPTY){
+	if(coin == PLAYER1_COIN) move -= 1; // User chooses between 1-7, but PC chooses between 0-6
+	if(board[MAX_ROWS-1][move] != EMPTY) return false; // Reached the top of the board // Make another move
+
+	for(let i = 0; i < MAX_COLUMNS; i++){
+		if(move == i){
+			for(let j = 0; j < MAX_ROWS; j++){
+				if(board[j][i] == EMPTY){
+					board[j][i] = coin;
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+function isWinner(board, coin, isSimulation = false){
+	for(let i = 0; i < MAX_ROWS; i++){
+		for(let j = 0; j < MAX_COLUMNS; j++){
+			if(board[i][j] == coin){
+				if(j + 3 < MAX_COLUMNS){
+					if(board[i][j+1] == coin && board[i][j+2] == coin && board[i][j+3] == coin){
+						if(!isSimulation){
+							board[i][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i][j+1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i][j+2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i][j+3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+						}
+						return true;
+					}
+				}
+				if(i + 3 < MAX_ROWS){
+					if(board[i+1][j] == coin && board[i+2][j] == coin && board[i+3][j] == coin){
+						if(!isSimulation){
+							board[i][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+1][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+2][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+3][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+						}
+						return true;
+					}
+				}
+				if(i + 3 < MAX_ROWS && j + 3 < MAX_COLUMNS){
+					if(board[i+1][j+1] == coin && board[i+2][j+2] == coin && board[i+3][j+3] == coin){
+						if(!isSimulation){
+							board[i][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+1][j+1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+2][j+2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+3][j+3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+						}
+						return true;
+					}
+				}
+				if(i + 3 < MAX_ROWS && j - 3 >= 0){
+					if(board[i+1][j-1] == coin && board[i+2][j-2] == coin && board[i+3][j-3] == coin){
+						if(!isSimulation){
+							board[i][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+1][j-1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+2][j-2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							board[i+3][j-3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+						}
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
 
 async function userTurn(board){
 	let input = "";
@@ -136,106 +214,21 @@ async function userTurn(board){
 			process.exit(0);
 		}
 	}
-	
-	if(!makeUserMove(board, Number(input))){
+
+	//input = pcAiModeMove(board);
+	//await terminal.sleep(1000);
+
+	if(!makeMove(board, Number(input), PLAYER1_COIN)){
 		return await userTurn(board);
 	}
 
 	coinsCount++;
 
-	if(isUserWinner(board)){
+	if(isWinner(board, PLAYER1_COIN)){
 		return await userWins(board);
 	}
 
 	return false;
-}
-
-function makeUserMove(board, input){
-	input -= 1;
-	if(board[MAX_ROWS-1][input] != " ") return false; // Reached the top of the board // Make another move
-
-	for(let i = 0; i < MAX_COLUMNS; i++){
-		if(input == i){
-			for(let j = 0; j < MAX_ROWS; j++){
-				if(board[j][i] == " "){
-					board[j][i] = "X";
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-function isUserWinner(board, isSimulation = false){
-	for(let i = 0; i < MAX_ROWS; i++){
-		for(let j = 0; j < MAX_COLUMNS; j++){
-			if(board[i][j] == "X"){
-				if(j + 3 < MAX_COLUMNS){
-					if(board[i][j+1] == "X" && board[i][j+2] == "X" && board[i][j+3] == "X"){
-						if(!isSimulation){
-							board[i][j] = "U";
-							board[i][j+1] = "U";
-							board[i][j+2] = "U";
-							board[i][j+3] = "U";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS){
-					if(board[i+1][j] == "X" && board[i+2][j] == "X" && board[i+3][j] == "X"){
-						if(!isSimulation){
-							board[i][j] = "U";
-							board[i+1][j] = "U";
-							board[i+2][j] = "U";
-							board[i+3][j] = "U";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS && j + 3 < MAX_COLUMNS){
-					if(board[i+1][j+1] == "X" && board[i+2][j+2] == "X" && board[i+3][j+3] == "X"){
-						if(!isSimulation){
-							board[i][j] = "U";
-							board[i+1][j+1] = "U";
-							board[i+2][j+2] = "U";
-							board[i+3][j+3] = "U";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS && j - 3 >= 0){
-					if(board[i+1][j-1] == "X" && board[i+2][j-2] == "X" && board[i+3][j-3] == "X"){
-						if(!isSimulation){
-							board[i][j] = "U";
-							board[i+1][j-1] = "U";
-							board[i+2][j-2] = "U";
-							board[i+3][j-3] = "U";
-						}
-						return true;
-					}
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-async function userWins(board){
-	terminal.clearScreen();
-	drawBoard(board);
-	terminal.beep();
-
-	console.log(LEFT_SPACE + "---- Congradulations!, You won the game ---- \n");
-	console.log(LEFT_SPACE + "             Play again....? \n");
-	console.log(LEFT_SPACE + "       Yes: Y            No: N \n");
-
-	const answer = await terminal.getUserInput("Enter your answer: ");
-	playAgain = !answer.toLowerCase().includes("n");
-
-	return true;
 }
 
 async function pcTurn(board){
@@ -244,19 +237,19 @@ async function pcTurn(board){
 		pcMove = pcHardModeMove(board);
 	}
 	else if(pcMode.toLowerCase().includes("a")){
-		pcMove = await pcAiModeMove(board);
+		pcMove = pcAiModeMove(board);
 	}
 	else {
 		pcMove = pcEasyModeMove();
 	}
 
-	if(!makePcMove(board, pcMove)){
+	if(!makeMove(board, pcMove, PLAYER2_COIN)){
 		return await pcTurn(board);
 	}
 
 	coinsCount++;
 
-	if(isPcWinner(board)){
+	if(isWinner(board, PLAYER2_COIN)){
 		return await pcWins(board);
 	}
 
@@ -271,17 +264,17 @@ function pcEasyModeMove(){
 	return generateRandomMove();
 }
 
-function simulatePcMove(board, move){
+function pcSimulateMove(board, move, pcCoin, userCoin){
 	let simBoard =  board.map(row => row.slice());
 
-	if(!makePcMove(simBoard, move)){
+	if(!makeMove(simBoard, move, pcCoin)){
 		return true;
 	}
 
-	return pcHardModeFindDefenceMove(simBoard) > -1;
+	return pcHardModeFindDefenceMove(simBoard, userCoin) > -1;
 }
 
-function pcHardModeFindDefenceMove(board){
+function pcHardModeFindDefenceMove(board, userCoin = PLAYER1_COIN){
 	// Strategies for PC in hard mode
 	for(let i = 0; i < MAX_COLUMNS; i++){
 		for(let j = 0; j < MAX_ROWS; j++){
@@ -292,32 +285,32 @@ function pcHardModeFindDefenceMove(board){
 			// Check for vertical moves
 			// Three stones
 			if(j < MAX_ROWS - 3){
-				if(board[j][i] == "X" && board[j+1][i] == "X" && board[j+2][i] == "X" && board[j+3][i] == " ") return i; // Def from top
+				if(board[j][i] == userCoin && board[j+1][i] == userCoin && board[j+2][i] == userCoin && board[j+3][i] == EMPTY) return i; // Def from top
 			}
 			
 			// Check for horizontal moves
 			// Three stones
 			if(i < MAX_COLUMNS - 3){
-				if(board[j][i] == "X" && board[j][i+1] == "X" && board[j][i+2] == "X" && board[j][i+3] == " " && (j == 0 || (j != 0 && board[j-1][i+3] != " "))) return i+3; // Def from right
-				if(board[j][i] == "X" && board[j][i+1] == "X" && board[j][i+2] == " " && board[j][i+3] == "X" && (j == 0 || (j != 0 && board[j-1][i+2] != " "))) return i+2; // Def from middle-right
-				if(board[j][i] == "X" && board[j][i+1] == " " && board[j][i+2] == "X" && board[j][i+3] == "X" && (j == 0 || (j != 0 && board[j-1][i+1] != " "))) return i+1; // Def from middle-left
-				if(board[j][i] == " " && board[j][i+1] == "X" && board[j][i+2] == "X" && board[j][i+3] == "X" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Def from left
+				if(board[j][i] == userCoin && board[j][i+1] == userCoin && board[j][i+2] == userCoin && board[j][i+3] == EMPTY && (j == 0 || (j != 0 && board[j-1][i+3] != EMPTY))) return i+3; // Def from right
+				if(board[j][i] == userCoin && board[j][i+1] == userCoin && board[j][i+2] == EMPTY && board[j][i+3] == userCoin && (j == 0 || (j != 0 && board[j-1][i+2] != EMPTY))) return i+2; // Def from middle-right
+				if(board[j][i] == userCoin && board[j][i+1] == EMPTY && board[j][i+2] == userCoin && board[j][i+3] == userCoin && (j == 0 || (j != 0 && board[j-1][i+1] != EMPTY))) return i+1; // Def from middle-left
+				if(board[j][i] == EMPTY && board[j][i+1] == userCoin && board[j][i+2] == userCoin && board[j][i+3] == userCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Def from left
 			}
 
 			// Check for diagonal moves (bottom-left to top-right)
 			if(j < MAX_ROWS - 3 && i < MAX_COLUMNS - 3){
-				if(board[j][i] == "X" && board[j + 1][i + 1] == "X" && board[j + 2][i + 2] == "X" && board[j + 3][i + 3] == " " && board[j + 2][i + 3] != " ") return i + 3; // Def from top
-				if(board[j][i] == "X" && board[j + 1][i + 1] == "X" && board[j + 2][i + 2] == " " && board[j + 3][i + 3] == "X" && board[j + 1][i + 2] != " ") return i + 2; // Def from middle-top
-				if(board[j][i] == "X" && board[j + 1][i + 1] == " " && board[j + 2][i + 2] == "X" && board[j + 3][i + 3] == "X" && board[j][i + 1] != " ") return i + 1; // Def from middle-bottom
-				if(board[j][i] == " " && board[j + 1][i + 1] == "X" && board[j + 2][i + 2] == "X" && board[j + 3][i + 3] == "X" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Def from bottom
+				if(board[j][i] == userCoin && board[j + 1][i + 1] == userCoin && board[j + 2][i + 2] == userCoin && board[j + 3][i + 3] == EMPTY && board[j + 2][i + 3] != EMPTY) return i + 3; // Def from top
+				if(board[j][i] == userCoin && board[j + 1][i + 1] == userCoin && board[j + 2][i + 2] == EMPTY && board[j + 3][i + 3] == userCoin && board[j + 1][i + 2] != EMPTY) return i + 2; // Def from middle-top
+				if(board[j][i] == userCoin && board[j + 1][i + 1] == EMPTY && board[j + 2][i + 2] == userCoin && board[j + 3][i + 3] == userCoin && board[j][i + 1] != EMPTY) return i + 1; // Def from middle-bottom
+				if(board[j][i] == EMPTY && board[j + 1][i + 1] == userCoin && board[j + 2][i + 2] == userCoin && board[j + 3][i + 3] == userCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Def from bottom
 			}
 
 			// Check for diagonal moves (bottom-right to top-left)
 			if(j < MAX_ROWS - 3 && i > 2){
-				if(board[j][i] == "X" && board[j + 1][i - 1] == "X" && board[j + 2][i - 2] == "X" && board[j + 3][i - 3] == " " && board[j + 2][i - 3] != " ") return i - 3; // Def from top
-				if(board[j][i] == "X" && board[j + 1][i - 1] == "X" && board[j + 2][i - 2] == " " && board[j + 3][i - 3] == "X" && board[j + 1][i - 2] != " ") return i - 2; // Def from middle-top
-				if(board[j][i] == "X" && board[j + 1][i - 1] == " " && board[j + 2][i - 2] == "X" && board[j + 3][i - 3] == "X" && board[j][i - 1] != " ") return i - 1; // Def from middle-bottom
-				if(board[j][i] == " " && board[j + 1][i - 1] == "X" && board[j + 2][i - 2] == "X" && board[j + 3][i - 3] == "X" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Def from bottom
+				if(board[j][i] == userCoin && board[j + 1][i - 1] == userCoin && board[j + 2][i - 2] == userCoin && board[j + 3][i - 3] == EMPTY && board[j + 2][i - 3] != EMPTY) return i - 3; // Def from top
+				if(board[j][i] == userCoin && board[j + 1][i - 1] == userCoin && board[j + 2][i - 2] == EMPTY && board[j + 3][i - 3] == userCoin && board[j + 1][i - 2] != EMPTY) return i - 2; // Def from middle-top
+				if(board[j][i] == userCoin && board[j + 1][i - 1] == EMPTY && board[j + 2][i - 2] == userCoin && board[j + 3][i - 3] == userCoin && board[j][i - 1] != EMPTY) return i - 1; // Def from middle-bottom
+				if(board[j][i] == EMPTY && board[j + 1][i - 1] == userCoin && board[j + 2][i - 2] == userCoin && board[j + 3][i - 3] == userCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Def from bottom
 			}
 		}
 	}
@@ -325,7 +318,7 @@ function pcHardModeFindDefenceMove(board){
 	return -1;
 }
 
-function pcHardModeFindOffenceMove(board){
+function pcHardModeFindOffenceMove(board, pcCoin = PLAYER2_COIN){
 	// Strategies for PC in hard mode
 	for(let i = 0; i < MAX_COLUMNS; i++){
 		for(let j = 0; j < MAX_ROWS; j++){
@@ -336,32 +329,32 @@ function pcHardModeFindOffenceMove(board){
 			// Check for vertical moves
 			// Three stones
 			if(j < MAX_ROWS - 3){
-				if(board[j][i] == "O" && board[j+1][i] == "O" && board[j+2][i] == "O" && board[j+3][i] == " ") return i; // Atk from top
+				if(board[j][i] == pcCoin && board[j+1][i] == pcCoin && board[j+2][i] == pcCoin && board[j+3][i] == EMPTY) return i; // Atk from top
 			}
 			
 			// Check for horizontal moves
 			// Three stones
 			if(i < MAX_COLUMNS - 3){
-				if(board[j][i] == "O" && board[j][i+1] == "O" && board[j][i+2] == "O" && board[j][i+3] == " " && (j == 0 || (j != 0 && board[j-1][i+3] != " "))) return i+3; // Atk from right
-				if(board[j][i] == "O" && board[j][i+1] == "O" && board[j][i+2] == " " && board[j][i+3] == "O" && (j == 0 || (j != 0 && board[j-1][i+2] != " "))) return i+2; // Atk from middle-right
-				if(board[j][i] == "O" && board[j][i+1] == " " && board[j][i+2] == "O" && board[j][i+3] == "O" && (j == 0 || (j != 0 && board[j-1][i+1] != " "))) return i+1; // Atk from middle-left
-				if(board[j][i] == " " && board[j][i+1] == "O" && board[j][i+2] == "O" && board[j][i+3] == "O" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Atk from left
+				if(board[j][i] == pcCoin && board[j][i+1] == pcCoin && board[j][i+2] == pcCoin && board[j][i+3] == EMPTY && (j == 0 || (j != 0 && board[j-1][i+3] != EMPTY))) return i+3; // Atk from right
+				if(board[j][i] == pcCoin && board[j][i+1] == pcCoin && board[j][i+2] == EMPTY && board[j][i+3] == pcCoin && (j == 0 || (j != 0 && board[j-1][i+2] != EMPTY))) return i+2; // Atk from middle-right
+				if(board[j][i] == pcCoin && board[j][i+1] == EMPTY && board[j][i+2] == pcCoin && board[j][i+3] == pcCoin && (j == 0 || (j != 0 && board[j-1][i+1] != EMPTY))) return i+1; // Atk from middle-left
+				if(board[j][i] == EMPTY && board[j][i+1] == pcCoin && board[j][i+2] == pcCoin && board[j][i+3] == pcCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Atk from left
 			}
 
 			// Check for diagonal moves (bottom-left to top-right)
 			if(j < MAX_ROWS - 3 && i < MAX_COLUMNS - 3){
-				if(board[j][i] == "O" && board[j + 1][i + 1] == "O" && board[j + 2][i + 2] == "O" && board[j + 3][i + 3] == " " && board[j + 2][i + 3] != " ") return i + 3; // Atk from top
-				if(board[j][i] == "O" && board[j + 1][i + 1] == "O" && board[j + 2][i + 2] == " " && board[j + 3][i + 3] == "O" && board[j + 1][i + 2] != " ") return i + 2; // Atk from middle-top
-				if(board[j][i] == "O" && board[j + 1][i + 1] == " " && board[j + 2][i + 2] == "O" && board[j + 3][i + 3] == "O" && board[j][i + 1] != " ") return i + 1; // Atk from middle-bottom
-				if(board[j][i] == " " && board[j + 1][i + 1] == "O" && board[j + 2][i + 2] == "O" && board[j + 3][i + 3] == "O" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Atk from bottom
+				if(board[j][i] == pcCoin && board[j + 1][i + 1] == pcCoin && board[j + 2][i + 2] == pcCoin && board[j + 3][i + 3] == EMPTY && board[j + 2][i + 3] != EMPTY) return i + 3; // Atk from top
+				if(board[j][i] == pcCoin && board[j + 1][i + 1] == pcCoin && board[j + 2][i + 2] == EMPTY && board[j + 3][i + 3] == pcCoin && board[j + 1][i + 2] != EMPTY) return i + 2; // Atk from middle-top
+				if(board[j][i] == pcCoin && board[j + 1][i + 1] == EMPTY && board[j + 2][i + 2] == pcCoin && board[j + 3][i + 3] == pcCoin && board[j][i + 1] != EMPTY) return i + 1; // Atk from middle-bottom
+				if(board[j][i] == EMPTY && board[j + 1][i + 1] == pcCoin && board[j + 2][i + 2] == pcCoin && board[j + 3][i + 3] == pcCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Atk from bottom
 			}
 
 			// Check for diagonal moves (bottom-right to top-left)
 			if(j < MAX_ROWS - 3 && i > 2){
-				if(board[j][i] == "O" && board[j + 1][i - 1] == "O" && board[j + 2][i - 2] == "O" && board[j + 3][i - 3] == " " && board[j + 2][i - 3] != " ") return i - 3; // Atk from top
-				if(board[j][i] == "O" && board[j + 1][i - 1] == "O" && board[j + 2][i - 2] == " " && board[j + 3][i - 3] == "O" && board[j + 1][i - 2] != " ") return i - 2; // Atk from middle-top
-				if(board[j][i] == "O" && board[j + 1][i - 1] == " " && board[j + 2][i - 2] == "O" && board[j + 3][i - 3] == "O" && board[j][i - 1] != " ") return i - 1; // Atk from middle-bottom
-				if(board[j][i] == " " && board[j + 1][i - 1] == "O" && board[j + 2][i - 2] == "O" && board[j + 3][i - 3] == "O" && (j == 0 || (j != 0 && board[j-1][i] != " "))) return i; // Atk from bottom
+				if(board[j][i] == pcCoin && board[j + 1][i - 1] == pcCoin && board[j + 2][i - 2] == pcCoin && board[j + 3][i - 3] == EMPTY && board[j + 2][i - 3] != EMPTY) return i - 3; // Atk from top
+				if(board[j][i] == pcCoin && board[j + 1][i - 1] == pcCoin && board[j + 2][i - 2] == EMPTY && board[j + 3][i - 3] == pcCoin && board[j + 1][i - 2] != EMPTY) return i - 2; // Atk from middle-top
+				if(board[j][i] == pcCoin && board[j + 1][i - 1] == EMPTY && board[j + 2][i - 2] == pcCoin && board[j + 3][i - 3] == pcCoin && board[j][i - 1] != EMPTY) return i - 1; // Atk from middle-bottom
+				if(board[j][i] == EMPTY && board[j + 1][i - 1] == pcCoin && board[j + 2][i - 2] == pcCoin && board[j + 3][i - 3] == pcCoin && (j == 0 || (j != 0 && board[j-1][i] != EMPTY))) return i; // Atk from bottom
 			}
 		}
 	}
@@ -369,11 +362,11 @@ function pcHardModeFindOffenceMove(board){
 	return -1;
 }
 
-function pcHardModeMove(board){
-	let move = pcHardModeFindDefenceMove(board);
+function pcHardModeMove(board, pcCoin, userCoin){
+	let move = pcHardModeFindDefenceMove(board, userCoin);
 	if(move > -1) return move;
 
-	move = pcHardModeFindOffenceMove(board);
+	move = pcHardModeFindOffenceMove(board, pcCoin);
 	if(move > -1) return move;
 
 	
@@ -381,7 +374,7 @@ function pcHardModeMove(board){
 	
 	// Simulate random moves with risk, MAX_COINS times
 	for(let numOfSims = 0; numOfSims < MAX_COINS; numOfSims++){
-		const isRisky = simulatePcMove(board, randomMove);
+		const isRisky = pcSimulateMove(board, randomMove, pcCoin, userCoin);
 		if(isRisky){
 			randomMove = generateRandomMove();
 		}
@@ -392,7 +385,7 @@ function pcHardModeMove(board){
 	
 	// If reached this, then we check risk from 0 to MAX_COLUMNS
 	for(let i = 0; i < MAX_COLUMNS; i++){
-		const isRisky = simulatePcMove(board, i);
+		const isRisky = pcSimulateMove(board, i);
 		if(!isRisky){
 			return i;
 		}
@@ -406,9 +399,73 @@ function pcHardModeMove(board){
  * AI
  **********/
 
+function evaluateWindow(window, piece) {
+    let score = 0;
+	let oppPiece = piece == PLAYER2_COIN ? PLAYER1_COIN : PLAYER2_COIN;
+
+    if (window.filter(val => val === piece).length === 4) {
+        score += 100;
+    } else if (window.filter(val => val === piece).length === 3 && window.filter(val => val === EMPTY).length === 1) {
+        score += 5;
+    } else if (window.filter(val => val === piece).length === 2 && window.filter(val => val === EMPTY).length === 2) {
+        score += 2;
+    }
+
+    if (window.filter(val => val === oppPiece).length === 3 && window.filter(val => val === EMPTY).length === 1) {
+        score -= 4;
+    }
+
+    return score;
+}
+
+function scorePosition(board, piece) {
+    let score = 0;
+
+    // Score center column
+    let centerArray = Array.from(board[Math.floor(MAX_COLUMNS / 2)]).map(Number);
+    let centerCount = centerArray.filter(val => val === piece).length;
+    score += centerCount * 3;
+
+    // Score Horizontal
+    for (let r = 0; r < MAX_ROWS; r++) {
+        let rowArray = Array.from(board[r]).map(Number);
+        for (let c = 0; c < MAX_COLUMNS - 3; c++) {
+            let window = rowArray.slice(c, c + 4);
+            score += evaluateWindow(window, piece);
+        }
+    }
+
+    // Score Vertical
+    for (let c = 0; c < MAX_COLUMNS; c++) {
+        let colArray = Array.from(board.map(row => row[c])).map(Number);
+        for (let r = 0; r < MAX_ROWS - 3; r++) {
+            let window = colArray.slice(r, r + 4);
+            score += evaluateWindow(window, piece);
+        }
+    }
+
+    // Score positive sloped diagonal
+    for (let r = 0; r < MAX_ROWS - 3; r++) {
+        for (let c = 0; c < MAX_COLUMNS - 3; c++) {
+            let window = Array.from({length: 4}, (_, i) => board[r + i][c + i]);
+            score += evaluateWindow(window, piece);
+        }
+    }
+
+    // Score negative sloped diagonal
+    for (let r = 0; r < MAX_ROWS - 3; r++) {
+        for (let c = 0; c < MAX_COLUMNS - 3; c++) {
+            let window = Array.from({length: 4}, (_, i) => board[r + 3 - i][c + i]);
+            score += evaluateWindow(window, piece);
+        }
+    }
+
+    return score;
+}
+
 function isColumnAvailable(board, column){
 	for(let i = 0; i < MAX_ROWS; i++){
-		if(board[i][column] == " ") return true;
+		if(board[i][column] == EMPTY) return true;
 	}
 	return false;
 }
@@ -420,28 +477,12 @@ function isBoardFull(board){
 	return true;
 }
 
-function makeMove(board, input, coin){
-	if(board[MAX_ROWS-1][input] != " ") return false; // Reached the top of the board // Make another move
-
-	for(let i = 0; i < MAX_COLUMNS; i++){
-		if(input == i){
-			for(let j = 0; j < MAX_ROWS; j++){
-				if(board[j][i] == " "){
-					board[j][i] = coin;
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;
-}
-
-function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
-	if (isPcWinner(board, true)) return [undefined, 100];
-    if (isUserWinner(board, true)) return [undefined, -100];
-    if (isBoardFull(board) || depth == 0) return [undefined, 0];
-
+function minimax(board, depth, alpha, beta, isMaximizingPlayer, pcCoin = PLAYER2_COIN, userCoin = PLAYER1_COIN) {
+    if (isWinner(board, pcCoin, true)) return [undefined, 10000000000000000];
+    if (isWinner(board, userCoin, true)) return [undefined, -10000000000000000];
+    if (isBoardFull(board)) return [undefined, 0];
+    if (depth == 0) return [undefined, scorePosition(board, pcCoin)];
+	
     if (isMaximizingPlayer) {
         let bestScore = -Infinity;
 
@@ -453,9 +494,9 @@ function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
 		for (let i = 0; i < MAX_COLUMNS; i++) {
             if (isColumnAvailable(board, i)) {
 				let simBoard = board.map(row => row.slice());
-				makeMove(simBoard, i, "O");
+				makeMove(simBoard, i, pcCoin);
 
-				let score = minimax(simBoard, depth-1, alpha, beta, false)[1];
+				let score = minimax(simBoard, depth-1, alpha, beta, false, pcCoin, userCoin)[1];
 				
 				if(score > bestScore){
 					bestScore = score;
@@ -479,9 +520,9 @@ function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
 		for (let i = 0; i < MAX_COLUMNS; i++) {
             if (isColumnAvailable(board, i)) {
 				let simBoard = board.map(row => row.slice());
-				makeMove(simBoard, i, "X");
+				makeMove(simBoard, i, userCoin);
 
-				let score = minimax(simBoard, depth-1, alpha, beta, true)[1];
+				let score = minimax(simBoard, depth-1, alpha, beta, true, pcCoin, userCoin)[1];
 
 				if(score < bestScore){
 					bestScore = score;
@@ -496,13 +537,13 @@ function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
     }
 }
 
-async function pcAiModeMove(board) {
-    let move = minimax(board, 4, -Infinity, Infinity, true)[0];
+function pcAiModeMove(board, pcCoin, userCoin) {
+    let move = minimax(board, 5, -Infinity, Infinity, true, pcCoin, userCoin)[0];
 
-	if(!move){
-		move = pcHardModeMove(board);
+	if(typeof move == 'undefined'){
+		move = pcHardModeMove(board, pcCoin, userCoin);
 	}
-
+	
     return move;
 }
 
@@ -511,76 +552,19 @@ async function pcAiModeMove(board) {
  * **************
  */
 
-function makePcMove(board, input){
-	if(board[MAX_ROWS-1][input] != " ") return false; // Reached the top of the board // Make another move
+async function userWins(board){
+	terminal.clearScreen();
+	drawBoard(board);
+	terminal.beep();
 
-	for(let i = 0; i < MAX_COLUMNS; i++){
-		if(input == i){
-			for(let j = 0; j < MAX_ROWS; j++){
-				if(board[j][i] == " "){
-					board[j][i] = "O";
-					return true;
-				}
-			}
-		}
-	}
+	console.log(LEFT_SPACE + "---- Congradulations!, You won the game ---- \n");
+	console.log(LEFT_SPACE + "             Play again....? \n");
+	console.log(LEFT_SPACE + "       Yes: Y            No: N \n");
 
-	return false;
-}
+	const answer = await terminal.getUserInput("Enter your answer: ");
+	playAgain = !answer.toLowerCase().includes("n");
 
-function isPcWinner(board, isSimulation = false){
-	for(let i = 0; i < MAX_ROWS; i++){
-		for(let j = 0; j < MAX_COLUMNS; j++){
-			if(board[i][j] == "O"){
-				if(j + 3 < MAX_COLUMNS){
-					if(board[i][j+1] == "O" && board[i][j+2] == "O" && board[i][j+3] == "O"){
-						if(!isSimulation){
-							board[i][j] = "P";
-							board[i][j+1] = "P";
-							board[i][j+2] = "P";
-							board[i][j+3] = "P";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS){
-					if(board[i+1][j] == "O" && board[i+2][j] == "O" && board[i+3][j] == "O"){
-						if(!isSimulation){
-							board[i][j] = "P";
-							board[i+1][j] = "P";
-							board[i+2][j] = "P";
-							board[i+3][j] = "P";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS && j + 3 < MAX_COLUMNS){
-					if(board[i+1][j+1] == "O" && board[i+2][j+2] == "O" && board[i+3][j+3] == "O"){
-						if(!isSimulation){
-							board[i][j] = "P";
-							board[i+1][j+1] = "P";
-							board[i+2][j+2] = "P";
-							board[i+3][j+3] = "P";
-						}
-						return true;
-					}
-				}
-				if(i + 3 < MAX_ROWS && j - 3 >= 0){
-					if(board[i+1][j-1] == "O" && board[i+2][j-2] == "O" && board[i+3][j-3] == "O"){
-						if(!isSimulation){
-							board[i][j] = "P";
-							board[i+1][j-1] = "P";
-							board[i+2][j-2] = "P";
-							board[i+3][j-3] = "P";
-						}
-						return true;
-					}
-				}
-			}
-		}
-	}
-
-	return false;
+	return true;
 }
 
 async function pcWins(board){

@@ -28,4 +28,10 @@ module.exports = new function(){
         //process.stdout.write('\u0007');
         console.log('\u0007');
     }
+
+    this.sleep = async function(ms) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    }
 }
