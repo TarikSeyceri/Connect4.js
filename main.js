@@ -263,8 +263,12 @@ async function pcTurn(board){
 	return false;
 }
 
+function generateRandomMove(){
+	return Math.floor(Math.random() * MAX_COLUMNS)
+}
+
 function pcEasyModeMove(){
-	return Math.floor(Math.random() * MAX_COLUMNS);
+	return generateRandomMove();
 }
 
 function simulatePcMove(board, move){
@@ -373,13 +377,13 @@ function pcHardModeMove(board){
 	if(move > -1) return move;
 
 	
-	let randomMove = pcEasyModeMove();
+	let randomMove = generateRandomMove();
 	
 	// Simulate random moves with risk, MAX_COINS times
 	for(let numOfSims = 0; numOfSims < MAX_COINS; numOfSims++){
 		const isRisky = simulatePcMove(board, randomMove);
 		if(isRisky){
-			randomMove = pcEasyModeMove();
+			randomMove = generateRandomMove();
 		}
 		else {
 			return randomMove;
@@ -395,7 +399,7 @@ function pcHardModeMove(board){
 	}
 	
 	// If reached here then any move will make the PC loose!
-	return pcEasyModeMove();
+	return generateRandomMove();
 }
 
 /**********
@@ -433,51 +437,71 @@ function makeMove(board, input, coin){
 	return false;
 }
 
-function minimax(board, depth, isMaximizingPlayer) {
-	if (isPcWinner(board, true)) return 1;
-    if (isUserWinner(board, true)) return -1;
-    if (isBoardFull(board) || depth == 5) return 0;
+function minimax(board, depth, alpha, beta, isMaximizingPlayer) {
+	if (isPcWinner(board, true)) return [undefined, 100];
+    if (isUserWinner(board, true)) return [undefined, -100];
+    if (isBoardFull(board) || depth == 0) return [undefined, 0];
 
     if (isMaximizingPlayer) {
         let bestScore = -Infinity;
-        for (let i = 0; i < MAX_COLUMNS; i++) {
+
+		let move = generateRandomMove();
+		while(!isColumnAvailable(board, move)){
+			move = generateRandomMove();
+		}
+
+		for (let i = 0; i < MAX_COLUMNS; i++) {
             if (isColumnAvailable(board, i)) {
 				let simBoard = board.map(row => row.slice());
-                makeMove(simBoard, i, "O");
-                let score = minimax(simBoard, depth + 1, false);
-                bestScore = Math.max(score, bestScore);
-            }
-        }
-        return bestScore;
+				makeMove(simBoard, i, "O");
+
+				let score = minimax(simBoard, depth-1, alpha, beta, false)[1];
+				
+				if(score > bestScore){
+					bestScore = score;
+					move = i;
+				}
+
+				alpha = Math.max(alpha, bestScore);
+                if (alpha >= beta) break;
+			}
+		}
+		return [move, bestScore];
     } 
 	else {
         let bestScore = Infinity;
-        for (let i = 0; i < MAX_COLUMNS; i++) {
+
+		let move = generateRandomMove();
+		while(!isColumnAvailable(board, move)){
+			move = generateRandomMove();
+		}
+
+		for (let i = 0; i < MAX_COLUMNS; i++) {
             if (isColumnAvailable(board, i)) {
 				let simBoard = board.map(row => row.slice());
-                makeMove(simBoard, i, "X");
-                let score = minimax(simBoard, depth + 1, true);
-                bestScore = Math.min(score, bestScore);
-            }
-        }
-        return bestScore;
+				makeMove(simBoard, i, "X");
+
+				let score = minimax(simBoard, depth-1, alpha, beta, true)[1];
+
+				if(score < bestScore){
+					bestScore = score;
+					move = i;
+				}
+
+				beta = Math.min(beta, bestScore);
+                if (alpha >= beta) break;
+			}
+		}
+		return [move, bestScore];
     }
 }
 
 async function pcAiModeMove(board) {
-    let bestScore = -Infinity;
-    let move;
-    for (let i = 0; i < MAX_COLUMNS; i++) {
-        if (isColumnAvailable(board, i)) {
-			let simBoard =  board.map(row => row.slice());
-            makeMove(simBoard, i, "O");
-            let score = minimax(simBoard, 0, false);
-            if (score > bestScore) {
-                bestScore = score;
-                move = i;
-            }
-        }
-    }
+    let move = minimax(board, 4, -Infinity, Infinity, true)[0];
+
+	if(!move){
+		move = pcHardModeMove(board);
+	}
 
     return move;
 }
