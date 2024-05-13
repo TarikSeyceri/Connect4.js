@@ -78,7 +78,7 @@ async function choosePCMode(){  // This function will choose the PC Mode (Easy o
 	console.log(LEFT_SPACE + "Easy: E    Hard: H    AI: A \n");
 
 	//pcMode = await terminal.getUserInput("Enter your answer: ");
-	pcMode = "a";
+	pcMode = "h";
 }
 
 async function chooseWhoPlayFirst(){
@@ -204,7 +204,7 @@ function isWinner(board, coin, isSimulation = false){
 
 async function userTurn(board){
 	let input = "";
-	
+	/*
 	while(isNaN(Number(input)) || Number(input) < 1 || Number(input) > MAX_COLUMNS){
 		drawBoard(board);
 
@@ -214,9 +214,12 @@ async function userTurn(board){
 			process.exit(0);
 		}
 	}
+	*/
 
-	//input = pcAiModeMove(board);
-	//await terminal.sleep(1000);
+	drawBoard(board);
+	input = pcHardModeMove(board, PLAYER1_COIN, PLAYER2_COIN);
+	input=input+1;
+	await terminal.sleep(100);
 
 	if(!makeMove(board, Number(input), PLAYER1_COIN)){
 		return await userTurn(board);
