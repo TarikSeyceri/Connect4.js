@@ -1,3 +1,6 @@
+const autoPlayUser = true; // if true, PC vs PC, false: User vs PC
+const autoPlayUserAsHardOrAi = false; // true: Hard, false: AI
+
 /***************/
 /*  Importing  */
 /***************/
@@ -23,6 +26,7 @@ let Board = []; // 2 Dimensional Array for columns and rows // for drawing funct
 let coinsCount = 0; // Counting played stones // to finish the game with DRAW if no one wins
 let pcMode = "e"; // e = Easy || h = Hard || a = AI
 let playAgain = true; // true = Play again || false = Exit
+let noneWins = true; // If any player wins, will be false.
 
 /***************/
 /*  Functions  */
@@ -39,6 +43,7 @@ async function loadGame(){  // Initialization of all Variables
 	coinsCount = 0;
 	pcMode = "e";
 	playAgain = true;
+	noneWins = true;
 	
 	// Start Game
 	await choosePCMode();
@@ -56,7 +61,7 @@ async function loadGame(){  // Initialization of all Variables
 		}
 	}
 
-	if(coinsCount >= MAX_COINS){
+	if(coinsCount >= MAX_COINS && noneWins){
 		await noOneWins(Board);
 	}
 
@@ -77,8 +82,8 @@ async function choosePCMode(){  // This function will choose the PC Mode (Easy o
 	console.log(LEFT_SPACE + "Choose PC opponent mode \n");
 	console.log(LEFT_SPACE + "Easy: E    Hard: H    AI: A \n");
 
-	//pcMode = await terminal.getUserInput("Enter your answer: ");
-	pcMode = "h";
+	pcMode = await terminal.getUserInput("Enter your answer: ");
+	//pcMode = "a";
 }
 
 async function chooseWhoPlayFirst(){
@@ -88,10 +93,8 @@ async function chooseWhoPlayFirst(){
 	console.log(LEFT_SPACE + "Do you want to play first? \n");
 	console.log(LEFT_SPACE + "Yes: Y            No: N \n");
 
-	//const answer = await terminal.getUserInput("Enter your answer: ");
-	
-	//return answer.toLowerCase().includes("y");
-	return true;
+	return (await terminal.getUserInput("Enter your answer: ")).toLowerCase().includes("y");
+	//return true;
 }
 
 function drawBoard(board){
@@ -130,7 +133,6 @@ function drawBoard(board){
 }
 
 function makeMove(board, move, coin = EMPTY){
-	if(coin == PLAYER1_COIN) move -= 1; // User chooses between 1-7, but PC chooses between 0-6
 	if(board[MAX_ROWS-1][move] != EMPTY) return false; // Reached the top of the board // Make another move
 
 	for(let i = 0; i < MAX_COLUMNS; i++){
@@ -158,6 +160,7 @@ function isWinner(board, coin, isSimulation = false){
 							board[i][j+1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i][j+2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i][j+3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							noneWins = false;
 						}
 						return true;
 					}
@@ -169,6 +172,7 @@ function isWinner(board, coin, isSimulation = false){
 							board[i+1][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+2][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+3][j] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							noneWins = false;
 						}
 						return true;
 					}
@@ -180,6 +184,7 @@ function isWinner(board, coin, isSimulation = false){
 							board[i+1][j+1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+2][j+2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+3][j+3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							noneWins = false;
 						}
 						return true;
 					}
@@ -191,6 +196,7 @@ function isWinner(board, coin, isSimulation = false){
 							board[i+1][j-1] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+2][j-2] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
 							board[i+3][j-3] = coin == PLAYER1_COIN ? PLAYER1_WINNER_COIN : PLAYER2_WINNER_COIN;
+							noneWins = false;
 						}
 						return true;
 					}
@@ -203,25 +209,33 @@ function isWinner(board, coin, isSimulation = false){
 }
 
 async function userTurn(board){
-	let input = "";
-	/*
-	while(isNaN(Number(input)) || Number(input) < 1 || Number(input) > MAX_COLUMNS){
-		drawBoard(board);
+	let input = -1;
+	
+	if(!autoPlayUser){
+		while(isNaN(Number(input)) || Number(input) < 1 || Number(input) > MAX_COLUMNS){
+			drawBoard(board);
 
-		input = await terminal.getUserInput(`Enter your move (1 -> ${MAX_COLUMNS}) or type exit: `);
+			input = await terminal.getUserInput(`Enter your move (1 -> ${MAX_COLUMNS}) or type exit: `);
 
-		if(input.toLowerCase() == 'exit'){
-			process.exit(0);
+			if(input.toLowerCase() == 'exit'){
+				process.exit(0);
+			}
 		}
+
+		input = Number(input) - 1; // User chooses between 1-7, but we need to make it between 0 - 6
 	}
-	*/
+	else {
+		drawBoard(board);
+		if(autoPlayUserAsHardOrAi){
+			input = pcHardModeMove(board, PLAYER1_COIN, PLAYER2_COIN);
+		}
+		else {
+			input = pcAiModeMove(board, PLAYER1_COIN, PLAYER2_COIN);
+		}
+		await terminal.sleep(100);
+	}
 
-	drawBoard(board);
-	input = pcHardModeMove(board, PLAYER1_COIN, PLAYER2_COIN);
-	input=input+1;
-	await terminal.sleep(100);
-
-	if(!makeMove(board, Number(input), PLAYER1_COIN)){
+	if(!makeMove(board, input, PLAYER1_COIN)){
 		return await userTurn(board);
 	}
 
@@ -273,11 +287,11 @@ function pcSimulateMove(board, move, pcCoin, userCoin){
 	if(!makeMove(simBoard, move, pcCoin)){
 		return true;
 	}
-
+	
 	return pcHardModeFindDefenceMove(simBoard, userCoin) > -1;
 }
 
-function pcHardModeFindDefenceMove(board, userCoin = PLAYER1_COIN){
+function pcHardModeFindDefenceMove(board, userCoin){
 	// Strategies for PC in hard mode
 	for(let i = 0; i < MAX_COLUMNS; i++){
 		for(let j = 0; j < MAX_ROWS; j++){
@@ -321,7 +335,7 @@ function pcHardModeFindDefenceMove(board, userCoin = PLAYER1_COIN){
 	return -1;
 }
 
-function pcHardModeFindOffenceMove(board, pcCoin = PLAYER2_COIN){
+function pcHardModeFindOffenceMove(board, pcCoin){
 	// Strategies for PC in hard mode
 	for(let i = 0; i < MAX_COLUMNS; i++){
 		for(let j = 0; j < MAX_ROWS; j++){
@@ -365,7 +379,7 @@ function pcHardModeFindOffenceMove(board, pcCoin = PLAYER2_COIN){
 	return -1;
 }
 
-function pcHardModeMove(board, pcCoin, userCoin){
+function pcHardModeMove(board, pcCoin = PLAYER2_COIN, userCoin = PLAYER1_COIN){
 	let move = pcHardModeFindDefenceMove(board, userCoin);
 	if(move > -1) return move;
 
@@ -388,7 +402,7 @@ function pcHardModeMove(board, pcCoin, userCoin){
 	
 	// If reached this, then we check risk from 0 to MAX_COLUMNS
 	for(let i = 0; i < MAX_COLUMNS; i++){
-		const isRisky = pcSimulateMove(board, i);
+		const isRisky = pcSimulateMove(board, i, pcCoin, userCoin);
 		if(!isRisky){
 			return i;
 		}
@@ -540,7 +554,7 @@ function minimax(board, depth, alpha, beta, isMaximizingPlayer, pcCoin = PLAYER2
     }
 }
 
-function pcAiModeMove(board, pcCoin, userCoin) {
+function pcAiModeMove(board, pcCoin = PLAYER2_COIN, userCoin = PLAYER1_COIN) {
     let move = minimax(board, 5, -Infinity, Infinity, true, pcCoin, userCoin)[0];
 
 	if(typeof move == 'undefined'){
