@@ -1,5 +1,6 @@
-const autoPlayUser = true; // if true, PC vs PC, false: User vs PC
-const autoPlayUserAsHardOrAi = false; // true: Hard, false: AI
+const AUTO_PLAY_USER = true; // if true, PC vs PC, false: User vs PC
+const AUTO_PLAY_USER_AS_HARD_OR_AI = false; // true: Hard, false: AI
+const MINIMAX_DEPTH = 5; // The depth for minimax, which is the complexity of minimax algorithm (how much future can the AI sees);
 
 /***************/
 /*  Importing  */
@@ -211,7 +212,7 @@ function isWinner(board, coin, isSimulation = false){
 async function userTurn(board){
 	let input = -1;
 	
-	if(!autoPlayUser){
+	if(!AUTO_PLAY_USER){
 		while(isNaN(Number(input)) || Number(input) < 1 || Number(input) > MAX_COLUMNS){
 			drawBoard(board);
 
@@ -226,7 +227,7 @@ async function userTurn(board){
 	}
 	else {
 		drawBoard(board);
-		if(autoPlayUserAsHardOrAi){
+		if(AUTO_PLAY_USER_AS_HARD_OR_AI){
 			input = pcHardModeMove(board, PLAYER1_COIN, PLAYER2_COIN);
 		}
 		else {
@@ -555,7 +556,7 @@ function minimax(board, depth, alpha, beta, isMaximizingPlayer, pcCoin = PLAYER2
 }
 
 function pcAiModeMove(board, pcCoin = PLAYER2_COIN, userCoin = PLAYER1_COIN) {
-    let move = minimax(board, 5, -Infinity, Infinity, true, pcCoin, userCoin)[0];
+    let move = minimax(board, MINIMAX_DEPTH, -Infinity, Infinity, true, pcCoin, userCoin)[0];
 
 	if(typeof move == 'undefined'){
 		move = pcHardModeMove(board, pcCoin, userCoin);

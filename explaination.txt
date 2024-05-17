@@ -1,5 +1,3 @@
-Sure, I'd be happy to explain those functions for you!
-
 evaluate_window(window, piece): This function evaluates the potential of a given window (which is a list of four consecutive cells in a row, column, or diagonal) for a specific player's piece. It calculates a score based on the number of pieces of that player and the opponent in the window. The score is calculated as follows:
 If the window contains four pieces of the player's color, the score is 100.
 If the window contains three pieces of the player's color and one empty cell, the score is 5.
