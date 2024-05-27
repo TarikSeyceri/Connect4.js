@@ -1,5 +1,10 @@
 # Connect 4 Game
 
+## Student
+- STUDENT NAME: TARIK SEYCERİ
+- STUDENT ID: 1702899
+- BAU UNIVERSITY - CMP5999 Project
+
 ## Introduction
 
 Connect 4 is a classic two-player game where players take turns dropping colored discs 
