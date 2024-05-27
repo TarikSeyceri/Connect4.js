@@ -1,4 +1,4 @@
-const AUTO_PLAY_USER = true; // if true, PC vs PC, false: User vs PC
+const AUTO_PLAY_USER = false; // if true, PC vs PC, false: User vs PC
 const AUTO_PLAY_USER_AS_HARD_OR_AI = false; // true: Hard, false: AI
 const MINIMAX_DEPTH = 5; // The depth for minimax, which is the complexity of minimax algorithm (how much future can the AI sees);
 
@@ -83,8 +83,8 @@ async function choosePCMode(){  // This function will choose the PC Mode (Easy o
 	console.log(LEFT_SPACE + "Choose PC opponent mode \n");
 	console.log(LEFT_SPACE + "Easy: E    Hard: H    AI: A \n");
 
-	pcMode = await terminal.getUserInput("Enter your answer: ");
-	//pcMode = "a";
+	//pcMode = await terminal.getUserInput("Enter your answer: ");
+	pcMode = "a";
 }
 
 async function chooseWhoPlayFirst(){
@@ -94,8 +94,8 @@ async function chooseWhoPlayFirst(){
 	console.log(LEFT_SPACE + "Do you want to play first? \n");
 	console.log(LEFT_SPACE + "Yes: Y            No: N \n");
 
-	return (await terminal.getUserInput("Enter your answer: ")).toLowerCase().includes("y");
-	//return true;
+	//return (await terminal.getUserInput("Enter your answer: ")).toLowerCase().includes("y");
+	return true;
 }
 
 function drawBoard(board){
