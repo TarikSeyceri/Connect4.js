@@ -1,9 +1,23 @@
 # Connect 4 Game
 
-## Student
-- STUDENT NAME: TARIK SEYCERİ
-- STUDENT ID: 1702899
-- BAU UNIVERSITY - CMP5999 Project
+## Info
+
+Connect4 v4.0, This project is a game developed in four versions, C, C++ & Java SE, Node.js, older to newer respect
+
+This version is written with Node.js (JavaScript) Programming Language in 2024,
+
+![alt Preview](preview.jpg)
+
+It was for my master's degree's project
+
+I used Visual Studio Code IDE
+
+You can download Visual Studio Code from: https://visualstudio.microsoft.com/downloads/
+
+And Node.js from: https://nodejs.org/en/download/package-manager
+
+Enjoy!
+
 
 ## Introduction
 
