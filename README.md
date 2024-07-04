@@ -1,6 +1,6 @@
 # Connect4.js
 
-Connect4 v4.0, This project is a game developed in four versions, C, C++ & Java SE, Node.js, older to newer respect
+Connect4 v4.0, This project is a game developed in four versions, C, C++, Java SE & Node.js, older to newer respect
 
 This version is written with Node.js (JavaScript) Programming Language in 2024,
 
