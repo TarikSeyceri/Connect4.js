@@ -36,7 +36,7 @@ user vs. computer as well as computer vs. computer modes.
 
 ## File Structure
 
-- `main.js`: Contains the core game logic, including board initialization, game flow, and AI strategies.
+- `Connect4.js`: Contains the core game logic, including board initialization, game flow, and AI strategies.
 - `terminal.js`: Manages user input/output and provides utility functions.
 
 ## Installation
@@ -50,7 +50,7 @@ user vs. computer as well as computer vs. computer modes.
 1. Run the game using Node.js:
 
 ```bash
-node main.js
+node Connect4.js
 ```
 
 2. Follow the on-screen instructions to play the game.
