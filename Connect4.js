@@ -1,3 +1,5 @@
+//## Student
+//- STUDENT NAME: TARIK SEYCERİ
 const AUTO_PLAY_USER = false; // if true, PC vs PC, false: User vs PC
 const AUTO_PLAY_USER_AS_HARD_OR_AI = false; // true: Hard, false: AI
 const MINIMAX_DEPTH = 5; // The depth for minimax, which is the complexity of minimax algorithm (how much future can the AI sees);
